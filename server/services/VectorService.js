@@ -13,6 +13,7 @@ export class VectorService {
         this.qdrantConfig = {
             url: process.env.QDRANT_URL,
             collectionName: process.env.QDRANT_COLLECTION_NAME,
+            checkCompatibility: false, // Skip version check for Railway deployment
         };
         
         this.vectorStore = null;
@@ -125,7 +126,10 @@ export class VectorService {
         try {
             // Qdrant client to delete specific points
             const { QdrantClient } = await import('@qdrant/qdrant-js');
-            const client = new QdrantClient({ url: process.env.QDRANT_URL });
+            const client = new QdrantClient({ 
+                url: process.env.QDRANT_URL,
+                checkCompatibility: false 
+            });
             
             await client.delete(this.qdrantConfig.collectionName, {
                 points: pointIds
@@ -145,7 +149,10 @@ export class VectorService {
 
         try {
             const { QdrantClient } = await import('@qdrant/qdrant-js');
-            const client = new QdrantClient({ url: process.env.QDRANT_URL });
+            const client = new QdrantClient({ 
+                url: process.env.QDRANT_URL,
+                checkCompatibility: false 
+            });
             
             const info = await client.getCollection(this.qdrantConfig.collectionName);
             return info;
