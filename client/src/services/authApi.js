@@ -1,10 +1,11 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_URL = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
 
 // Create axios instance with base configuration
 const authApi = axios.create({
-  baseURL: `${API_BASE_URL}/auth`,
+  baseURL: `${API_URL}/auth`,
   withCredentials: true, // Include cookies for refresh tokens
   headers: {
     'Content-Type': 'application/json',
