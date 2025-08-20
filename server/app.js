@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import routes from './routes/index.js';
 import { errorHandler } from './middlewares/errorHandler.js';
-import { securityMiddleware } from './middlewares/security.js';
+import { securityHeaders, logSuspiciousActivity } from './middlewares/security.js';
 import { VectorService } from './services/VectorService.js';
 
 const app = express();
@@ -14,8 +14,8 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Security middleware
-app.use(helmet());
-app.use(securityMiddleware);
+app.use(securityHeaders);
+app.use(logSuspiciousActivity);
 
 // CORS configuration
 app.use(cors({
