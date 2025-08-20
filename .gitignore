@@ -1,0 +1,105 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Production builds
+/client/build/
+/server/dist/
+.next/
+out/
+
+# Environment variables - CRITICAL SECURITY
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+.env.staging
+server/.env*
+client/.env*
+
+# API Keys and Secrets - NEVER COMMIT THESE
+**/secrets.json
+**/config.json
+**/*secret*
+**/*key*
+**/*token*
+**/*password*
+**/*credential*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+/server/database/
+
+# File uploads and user data
+/server/uploads/
+/server/temp/
+/client/public/uploads/
+uploads/
+temp/
+
+# Logs
+logs/
+*.log
+/server/logs/
+/client/logs/
+
+# Runtime and cache
+.cache/
+.parcel-cache/
+.nyc_output/
+coverage/
+
+# IDE and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Testing
+/server/test-results/
+/client/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Backup and temporary files
+*.bak
+*.tmp
+*.temp
+*.backup
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Production deployment files
+deploy-production.sh
+production-*.yml
+railway.json
+vercel.json
+
+# Generated secrets and configs
+generate-secrets.js
+PRODUCTION_SECURITY_CHECKLIST.md
+
+# Certificate files
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Sensitive documentation
+SECURITY_NOTES.md
+DEPLOYMENT_KEYS.md
+API_KEYS.md
