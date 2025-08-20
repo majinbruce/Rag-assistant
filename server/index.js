@@ -1,5 +1,6 @@
 import { app, initializeServices } from './app.js';
 import { pool } from './db.js';
+import { initializeDatabase, checkDatabaseConnection } from './utils/dbInit.js';
 
 const port = process.env.PORT || 8000;
 
@@ -9,6 +10,9 @@ async function startServer() {
         const client = await pool.connect();
         console.log('Connected to PostgreSQL database');
         client.release();
+
+        // Initialize database tables
+        await initializeDatabase();
 
         // Initialize services
         const servicesInitialized = await initializeServices();
