@@ -1,7 +1,12 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://rag-assistant-production-467e.up.railway.app';
 const API_URL = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
+
+// Debug logging (remove in production)
+console.log('DEBUG - API_BASE_URL:', API_BASE_URL);
+console.log('DEBUG - API_URL:', API_URL);
+console.log('DEBUG - Auth baseURL:', `${API_URL}/auth`);
 
 // Create axios instance with base configuration
 const authApi = axios.create({
