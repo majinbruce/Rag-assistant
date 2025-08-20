@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "RAG Assistant Application",
   "scripts": {
-    "build": "cd server && npm ci",
+    "build": "cd server && npm ci --omit=dev",
     "start": "cd server && npm start",
     "dev": "cd server && npm run dev"
   },
