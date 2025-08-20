@@ -6,6 +6,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class VectorService {
     constructor() {
+        console.log('🚀 VectorService constructor called');
+        console.log('Initial QDRANT_URL:', process.env.QDRANT_URL);
+        
         this.embeddings = new OpenAIEmbeddings({
             model: "text-embedding-3-large",
         });
@@ -26,36 +29,125 @@ export class VectorService {
         });
     }
 
+    async testQdrantConnection(url, name) {
+        try {
+            console.log(`Testing ${name}: ${url}`);
+            const { QdrantClient } = await import('@qdrant/qdrant-js');
+            const testClient = new QdrantClient({
+                url: url,
+                apiKey: process.env.QDRANT_API_KEY,
+            });
+            
+            // Test with 5 second timeout
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error(`${name} timeout`)), 5000);
+            });
+            
+            await Promise.race([
+                testClient.getCollections(),
+                timeoutPromise
+            ]);
+            console.log(`✅ ${name} SUCCESS`);
+            return url;
+        } catch (error) {
+            console.log(`❌ ${name} FAILED: ${error.message}`);
+            return null;
+        }
+    }
+
     async initialize() {
         try {
+            console.log('=== Qdrant URL Testing Phase ===');
+            console.log('Original QDRANT_URL:', process.env.QDRANT_URL);
+            console.log('QDRANT_COLLECTION_NAME:', process.env.QDRANT_COLLECTION_NAME);
+            
+            // Test all possible URLs
+            const urlsToTest = [
+                { url: 'http://qdrant.railway.internal:6333', name: 'Railway Internal HTTP' },
+                { url: 'https://qdrant.railway.internal:6333', name: 'Railway Internal HTTPS' },
+                { url: 'http://qdrant-production-9ff1.up.railway.app:6333', name: 'Public HTTP with port' },
+                { url: 'https://qdrant-production-9ff1.up.railway.app:6333', name: 'Public HTTPS with port' },
+                { url: 'http://qdrant-production-9ff1.up.railway.app', name: 'Public HTTP no port' },
+                { url: 'https://qdrant-production-9ff1.up.railway.app', name: 'Public HTTPS no port' },
+                { url: process.env.QDRANT_URL, name: 'Environment Variable' }
+            ];
+
+            let workingUrl = null;
+            for (const { url, name } of urlsToTest) {
+                if (url) {
+                    const result = await this.testQdrantConnection(url, name);
+                    if (result) {
+                        workingUrl = result;
+                        break;
+                    }
+                }
+            }
+
+            if (!workingUrl) {
+                throw new Error('No working Qdrant URL found');
+            }
+
+            console.log(`🎯 Using working URL: ${workingUrl}`);
+            
+            // Update config with working URL
+            this.qdrantConfig.url = workingUrl;
+            
+            console.log('=== Qdrant Vector Store Initialization ===');
+            
             // Try to connect to existing collection
+            console.log('Attempting to connect to existing collection...');
             this.vectorStore = await QdrantVectorStore.fromExistingCollection(
                 this.embeddings,
                 this.qdrantConfig
             );
             console.log('Connected to existing Qdrant collection');
         } catch (error) {
+            console.log('Error connecting to existing collection:', error.message);
             console.log('Creating new Qdrant collection...');
-            // Create new collection if it doesn't exist
-            this.vectorStore = new QdrantVectorStore(this.embeddings, this.qdrantConfig);
-            console.log('Created new Qdrant collection');
+            try {
+                // Create new collection if it doesn't exist
+                this.vectorStore = new QdrantVectorStore(this.embeddings, this.qdrantConfig);
+                console.log('Created new Qdrant collection');
+            } catch (createError) {
+                console.error('Failed to create Qdrant collection:', createError);
+                console.error('Create error details:', {
+                    message: createError.message,
+                    stack: createError.stack,
+                    config: this.qdrantConfig
+                });
+                throw new Error(`Qdrant initialization failed: ${createError.message}`);
+            }
         }
+        console.log('=== Qdrant Initialization Complete ===');
     }
 
     async addDocumentToVectorStore(content, documentId, metadata = {}) {
-        if (!this.vectorStore) {
-            await this.initialize();
-        }
-
+        console.log('📝 addDocumentToVectorStore called - ENTRY POINT');
+        console.log('Document ID:', documentId);
         try {
+            console.log('Starting addDocumentToVectorStore for document:', documentId);
+            
+            if (!this.vectorStore) {
+                console.log('Vector store not initialized, initializing...');
+                await this.initialize();
+                console.log('Vector store initialization completed');
+            }
+
+            if (!this.vectorStore) {
+                throw new Error('Vector store failed to initialize');
+            }
+
+            console.log('Creating document object...');
             // Create a Document object
             const document = new Document({
                 pageContent: content,
                 metadata: { ...metadata, documentId }
             });
 
+            console.log('Splitting document into chunks...');
             // Split the document into chunks using LangChain's text splitter
             const chunks = await this.textSplitter.splitDocuments([document]);
+            console.log(`Document split into ${chunks.length} chunks`);
             
             const pointIds = [];
             const langchainDocuments = [];
@@ -75,8 +167,15 @@ export class VectorService {
                 langchainDocuments.push(chunks[i]);
             }
 
+            console.log('Adding documents to vector store...');
+            console.log('Vector store config:', {
+                url: this.qdrantConfig.url,
+                collectionName: this.qdrantConfig.collectionName
+            });
+            
             // Add documents to vector store
             await this.vectorStore.addDocuments(langchainDocuments);
+            console.log('Documents successfully added to vector store');
             
             return { pointIds, chunks: chunks.map(chunk => ({
                 text: chunk.pageContent,
@@ -84,6 +183,9 @@ export class VectorService {
             }))};
         } catch (error) {
             console.error('Error adding document to vector store:', error);
+            console.error('Error stack:', error.stack);
+            console.error('Vector store state:', !!this.vectorStore);
+            console.error('Qdrant config:', this.qdrantConfig);
             throw new Error(`Failed to add document to vector store: ${error.message}`);
         }
     }
