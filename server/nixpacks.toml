@@ -1,0 +1,9 @@
+[phases.build]
+cmds = ["npm ci"]
+
+[phases.deploy]
+cmd = "npm start"
+
+[variables]
+NODE_ENV = "production"
+PORT = "8000"
