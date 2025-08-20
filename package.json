@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "RAG Assistant Application",
   "scripts": {
-    "build": "cd server && npm ci --omit=dev",
+    "build": "cd server && npm install --legacy-peer-deps --omit=dev",
     "start": "cd server && npm start",
     "dev": "cd server && npm run dev"
   },
