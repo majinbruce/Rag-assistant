@@ -58,7 +58,7 @@ export async function initializeServices() {
     try {
         // Initialize vector service
         const vectorService = new VectorService();
-        await vectorService.ensureCollection();
+        await vectorService.initialize();
         console.log('✅ Vector service initialized');
         return true;
     } catch (error) {
