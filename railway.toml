@@ -1,11 +1,11 @@
 # Railway configuration for RAG application
-# This tells Railway how to deploy our services
+# Deploy using Docker Compose
 
 [build]
-builder = "nixpacks"
+builder = "dockercompose"
+dockercomposePath = "server/docker-compose.yml"
 
 [deploy]
-startCommand = "cd server && npm start"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
