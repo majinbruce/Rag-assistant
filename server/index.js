@@ -17,9 +17,9 @@ async function startServer() {
             console.warn('Some services failed to initialize, but starting server anyway');
         }
 
-        // Start server
-        app.listen(port, () => {
-            console.log(`🚀 RAG Server running on http://localhost:${port}`);
+        // Start server (bind to IPv6 for Railway private networking)
+        app.listen(port, "::", () => {
+            console.log(`🚀 RAG Server running on [::]${port}`);
             console.log(`📊 Health check: http://localhost:${port}/api/health`);
             console.log(`📚 Documents API: http://localhost:${port}/api/documents`);
             console.log(`💬 Chat API: http://localhost:${port}/api/chat`);
