@@ -14,7 +14,7 @@ export class VectorService {
         });
         
         this.qdrantConfig = {
-            url: process.env.QDRANT_URL,
+            url: process.env.QDRANT_URL || 'http://qdrant.railway.internal:6333',
             collectionName: process.env.QDRANT_COLLECTION_NAME,
             checkCompatibility: false, // Skip version check for Railway deployment
         };
@@ -73,6 +73,15 @@ export class VectorService {
             console.log('Connected to existing Qdrant collection');
         } catch (error) {
             console.log('Error connecting to existing collection:', error.message);
+            
+            // Check if error indicates connection failure vs collection not existing
+            if (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED') || error.message.includes('timeout')) {
+                console.error('❌ QDRANT CONNECTION FAILED - Cannot reach Qdrant server');
+                console.error('URL:', this.qdrantConfig.url);
+                console.error('This means documents cannot be indexed!');
+                throw new Error(`Qdrant server unreachable at ${this.qdrantConfig.url}: ${error.message}`);
+            }
+            
             console.log('Creating new Qdrant collection...');
             try {
                 // Create new collection if it doesn't exist
