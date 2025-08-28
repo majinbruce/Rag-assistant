@@ -57,42 +57,12 @@ export class VectorService {
 
     async initialize() {
         try {
-            console.log('=== Qdrant URL Testing Phase ===');
-            console.log('Original QDRANT_URL:', process.env.QDRANT_URL);
+            console.log('=== Qdrant Initialization Starting ===');
+            console.log('QDRANT_URL:', process.env.QDRANT_URL);
             console.log('QDRANT_COLLECTION_NAME:', process.env.QDRANT_COLLECTION_NAME);
             
-            // Test all possible URLs
-            const urlsToTest = [
-                { url: 'http://qdrant.railway.internal:6333', name: 'Railway Internal HTTP' },
-                { url: 'https://qdrant.railway.internal:6333', name: 'Railway Internal HTTPS' },
-                { url: 'http://qdrant-production-9ff1.up.railway.app:6333', name: 'Public HTTP with port' },
-                { url: 'https://qdrant-production-9ff1.up.railway.app:6333', name: 'Public HTTPS with port' },
-                { url: 'http://qdrant-production-9ff1.up.railway.app', name: 'Public HTTP no port' },
-                { url: 'https://qdrant-production-9ff1.up.railway.app', name: 'Public HTTPS no port' },
-                { url: process.env.QDRANT_URL, name: 'Environment Variable' }
-            ];
-
-            let workingUrl = null;
-            for (const { url, name } of urlsToTest) {
-                if (url) {
-                    const result = await this.testQdrantConnection(url, name);
-                    if (result) {
-                        workingUrl = result;
-                        break;
-                    }
-                }
-            }
-
-            if (!workingUrl) {
-                throw new Error('No working Qdrant URL found');
-            }
-
-            console.log(`🎯 Using working URL: ${workingUrl}`);
-            
-            // Update config with working URL
-            this.qdrantConfig.url = workingUrl;
-            
-            console.log('=== Qdrant Vector Store Initialization ===');
+            // Skip URL testing in development - use configured URL directly
+            console.log('Using configured Qdrant URL:', this.qdrantConfig.url);
             
             // Try to connect to existing collection
             console.log('Attempting to connect to existing collection...');
@@ -110,11 +80,6 @@ export class VectorService {
                 console.log('Created new Qdrant collection');
             } catch (createError) {
                 console.error('Failed to create Qdrant collection:', createError);
-                console.error('Create error details:', {
-                    message: createError.message,
-                    stack: createError.stack,
-                    config: this.qdrantConfig
-                });
                 throw new Error(`Qdrant initialization failed: ${createError.message}`);
             }
         }
